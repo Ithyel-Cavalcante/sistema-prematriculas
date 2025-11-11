@@ -19,7 +19,7 @@
 <body>
 
 <h2>
-    Cadastro de <?php $qtd_alunos;?> aluno(s)
+    Cadastro de <?php $qtd_alunos; ?> aluno(s)
 </h2>
     
 </body>
