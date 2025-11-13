@@ -7,10 +7,11 @@ if (isset($_POST['adicionar_usuario'])) {
     $nome_usuario = trim($_POST['nome_usuario'] ?? '');
     $cpf_usuario = trim($_POST['cpf_usuario'] ?? '');
     $bairro_usuario = trim($_POST['bairro_usuario'] ?? '');
+    $email_usuario = trim($_POST['email_usuario'] ?? '');
     $senha_usuario = trim($_POST['senha_usuario'] ?? '');
     $qtd_alunos = trim($_POST['qtd_alunos'] ?? '');
 
-    if (empty($nome_usuario) || empty($cpf_usuario) || empty($bairro_usuario) || empty($senha_usuario) || empty($qtd_alunos)) {
+    if (empty($nome_usuario) || empty($cpf_usuario) || empty($bairro_usuario) || empty($senha_usuario) || empty($qtd_alunos || empty($email_usuario))) {
         echo "<script>alert('Erro: Preencha todos os campos.'); window.history.back();</script>";
         exit;
     }
@@ -20,15 +21,21 @@ if (isset($_POST['adicionar_usuario'])) {
         exit;
     }
 
+    //verificação se o email existe
+    if(!filter_var($email_usuario, FILTER_VALIDATE_EMAIL)){
+        echo "<script>alert('Erro: email não é válido!'); window.history.back();</script>";
+        exit;    
+    }
+
     $senha_hash = password_hash($senha_usuario, PASSWORD_DEFAULT);
 
-    $stmt = $mysqli->prepare("INSERT INTO usuario (nome_usuario, cpf_usuario, bairro_usuario, qtd_alunos, senha_usuario) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $mysqli->prepare("INSERT INTO usuario (nome_usuario, cpf_usuario, bairro_usuario, qtd_alunos, email_usuario, senha_usuario) VALUES (?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
         echo "<script>alert('Erro ao preparar consulta: " . $mysqli->error . "'); window.history.back();</script>";
         exit;
     }
 
-    $stmt->bind_param("sssss", $nome_usuario, $cpf_usuario, $bairro_usuario, $senha_hash);
+    $stmt->bind_param("ssssss", $nome_usuario, $cpf_usuario, $bairro_usuario, $qtd_alunos, $email_usuario, $senha_hash);
 
     if ($stmt->execute()) {
         echo "<script>alert('Usuário cadastrado com sucesso!'); window.location.href = 'login.php';</script>";
@@ -42,16 +49,16 @@ if (isset($_POST['adicionar_usuario'])) {
 }
 
 if (isset($_POST['login_usuario'])) {
-    $cpf_usuario = trim($_POST['cpf_usuario'] ?? '');
+    $email_usuario = trim($_POST['email_usuario'] ?? '');
     $senha_usuario = trim($_POST['senha_usuario'] ?? '');
     
-    if (empty($cpf_usuario) || empty($senha_usuario)) {
-        echo "<script>alert('Erro: Preencha CPF e senha.'); window.history.back();</script>";
+    if (empty($email_usuario) || empty($senha_usuario)) {
+        echo "<script>alert('Erro: Preencha email e senha.'); window.history.back();</script>";
         exit;
     }
 
-    $stmt = $mysqli->prepare("SELECT id_usuario, nome_usuario, qtd_alunos, senha_usuario FROM usuario WHERE cpf_usuario = ?");
-    $stmt->bind_param("s", $cpf_usuario);
+    $stmt = $mysqli->prepare("SELECT id_usuario, nome_usuario, qtd_alunos, senha_usuario FROM usuario WHERE email_usuario = ?");
+    $stmt->bind_param("s", $email_usuario);
     $stmt->execute();
     $result = $stmt->get_result();
 

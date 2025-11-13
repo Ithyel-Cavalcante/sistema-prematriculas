@@ -14,13 +14,13 @@ include('../conn.php');
         <div class="">
 
             <div class="">
-                <label>CPF</label>
-                <input class="" name="cpf_usuario" type="number" maxlength="50" required>
+                <label>Email:</label>
+                <input class="" name="email_usuario" type="email" maxlength="50" required>
             </div>
 
             <div class="">
                 <label>Senha:</label>
-                <input class="" name="senha_usuario" type="text" maxlength="50" required>
+                <input class="" name="senha_usuario" type="password" maxlength="50" required>
             </div>
         </div>
 

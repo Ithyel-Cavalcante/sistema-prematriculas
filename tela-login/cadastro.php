@@ -24,6 +24,11 @@
                 <label>CPF:</label>
                 <input class="" name="cpf_usuario" type="number" maxlength="50"  placeholder="000.000.000-00" required>
             </div> 
+
+            <div class="">
+                <label>Email:</label>
+                <input class="" name="email_usuario" type="email" maxlength="50"  placeholder="seuemail@email.com" required>
+            </div> 
             
             <div class="">
                 <label>Senha:</label>
