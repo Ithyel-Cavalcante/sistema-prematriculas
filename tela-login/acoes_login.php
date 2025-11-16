@@ -81,6 +81,4 @@ if (isset($_POST['login_usuario'])) {
     $mysqli->close();
     exit;
 }
-
-
 ?>

@@ -1,33 +1,72 @@
-<?php
-include('../conn.php');
-//impedir que o usuario coloque pontos no cpf
-?>
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cadastro</title>
-</head>
-<body>
-    <form action="acoes_login.php" method="post">
-        <div class="">
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Sistema de Pré Matrículas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: Inter;
+      }
+    </style>
+  </head>
 
-            <div class="">
-                <label>Email:</label>
-                <input class="" name="email_usuario" type="email" maxlength="50" required>
-            </div>
+  <body class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <form
+      action="acoes_login.php"
+      method="post"
+      class="flex flex-col gap-4 text-left p-8 sm:p-12 shadow-lg border-zinc-200 border-2 rounded-md w-full max-w-md bg-white"
+    >
+      <h2 class="text-2xl sm:text-3xl font-bold text-center mb-4">
+        Entrar no Sistema
+      </h2>
 
-            <div class="">
-                <label>Senha:</label>
-                <input class="" name="senha_usuario" type="password" maxlength="50" required>
-            </div>
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label>Email <span class="text-red-500">*</span></label>
+          <input
+            class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
+            name="email_usuario"
+            type="email"
+            maxlength="50"
+            placeholder="seuemail@email.com"
+            required
+          />
         </div>
 
-        <div class="flex items-center justify-center gap-6 mt-6">
-            <button type="submit" name="login_usuario" class="">entrar</button> 
+        <div class="flex flex-col gap-2">
+          <label>Senha <span class="text-red-500">*</span></label>
+          <input
+            class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
+            name="senha_usuario"
+            type="password"
+            maxlength="50"
+            placeholder="********"
+            required
+          />
         </div>
+      </div>
+
+      <button
+        type="submit"
+        name="login_usuario"
+        class="mt-4 px-4 py-2 bg-green-700 text-white font-bold rounded transition hover:bg-green-900 cursor-pointer w-full"
+      >
+        Entrar
+      </button>
+
+      <a
+        href="cadastro.php"
+        class="text-center text-green-700 hover:underline font-medium mt-2"
+        >Cadastrar-se</a
+      >
     </form>
-    <a href="cadastro.php">Cadastrar</a>
-</body>
+  </body>
 </html>
