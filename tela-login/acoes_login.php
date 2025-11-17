@@ -107,6 +107,7 @@ if(isset($_POST['salvar_alunos'])){
         }
 
         echo "<script>alert('Alunos cadastrados com sucesso!'); window.location.href='painel.php';</script>";
+        header('Location: ../painel/painel.php');
         exit;
     }
 }
