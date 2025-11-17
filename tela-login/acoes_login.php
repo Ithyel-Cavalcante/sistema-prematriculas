@@ -21,7 +21,6 @@ if (isset($_POST['adicionar_usuario'])) {
         exit;
     }
 
-    //verificação se o email existe
     if(!filter_var($email_usuario, FILTER_VALIDATE_EMAIL)){
         echo "<script>alert('Erro: email não é válido!'); window.history.back();</script>";
         exit;    
@@ -57,7 +56,7 @@ if (isset($_POST['login_usuario'])) {
         exit;
     }
 
-    $stmt = $mysqli->prepare("SELECT id_usuario, nome_usuario, qtd_alunos, senha_usuario FROM usuario WHERE email_usuario = ?");
+    $stmt = $mysqli->prepare("SELECT id_usuario, nome_usuario, qtd_alunos, senha_usuario, bairro_usuario FROM usuario WHERE email_usuario = ?");
     $stmt->bind_param("s", $email_usuario);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -67,6 +66,7 @@ if (isset($_POST['login_usuario'])) {
             $_SESSION['id_usuario'] = $row['id_usuario'];
             $_SESSION['nome_usuario'] = $row['nome_usuario'];
             $_SESSION['qtd_alunos'] = $row['qtd_alunos'];
+            $_SESSION['bairro_usuario'] = $row['bairro_usuario'];
             
             echo "<script>alert('Login realizado com sucesso!'); window.location.href = '../painel/painel.php';</script>";
         } else {
@@ -80,5 +80,34 @@ if (isset($_POST['login_usuario'])) {
     $stmt->close();
     $mysqli->close();
     exit;
+}
+
+if(isset($_POST['salvar_alunos'])){
+    if (!empty($_POST['alunos'])) {
+        foreach ($_POST['alunos'] as $aluno) {
+            $nome   = trim($aluno['nome_aluno']);
+            $cpf    = trim($aluno['cpf_aluno']);
+            $bairro = trim($aluno['bairro_usuario']);
+            $escola = intval($aluno['escola']);
+
+            $stmt = $mysqli->prepare("
+                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+
+            $stmt->bind_param("iisss",
+                $escola,
+                $_SESSION['id_usuario'],
+                $nome,
+                $cpf,
+                $bairro
+            );
+
+            $stmt->execute();
+        }
+
+        echo "<script>alert('Alunos cadastrados com sucesso!'); window.location.href='painel.php';</script>";
+        exit;
+    }
 }
 ?>
