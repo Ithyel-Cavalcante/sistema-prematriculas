@@ -73,7 +73,9 @@ $stmt_all->close();
                     
                     if (!empty($escolas)) {
                         foreach ($escolas as $esc) {
-                            echo "<option value='{$esc['id_escola']}'>{$esc['nome_escola']}</option>";
+                            echo "<option value='{$esc['id_escola']}|{$esc['nome_escola']}'>
+                                {$esc['nome_escola']}
+                            </option>";
                         }
                     } else {
                         echo "<option value=''>NENHUMA ESCOLA DISPONÍVEL</option>";

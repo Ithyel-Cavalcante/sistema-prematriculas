@@ -84,30 +84,55 @@ if (isset($_POST['login_usuario'])) {
 
 if(isset($_POST['salvar_alunos'])){
     if (!empty($_POST['alunos'])) {
+        $alunos_salvos = 0;
+        
         foreach ($_POST['alunos'] as $aluno) {
-            $nome   = trim($aluno['nome_aluno']);
-            $cpf    = trim($aluno['cpf_aluno']);
-            $bairro = trim($aluno['bairro_usuario']);
-            $escola = intval($aluno['escola']);
+            $nome   = trim($aluno['nome_aluno'] ?? '');
+            $cpf    = trim($aluno['cpf_aluno'] ?? '');
+            $bairro = trim($aluno['bairro_usuario'] ?? '');
+            
+            $escola_data = explode('|', $aluno['escola'] ?? '');
+            $id_escola = intval($escola_data[0] ?? 0);
+            $nome_escola_aluno = trim($escola_data[1] ?? 'Escola não informada');
+            
+            if(empty($nome) || empty($cpf) || $id_escola == 0) {
+                continue;
+            }
 
             $stmt = $mysqli->prepare("
-                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, nome_escola_aluno)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
 
-            $stmt->bind_param("iisss",
-                $escola,
+            if ($stmt === false) {
+                error_log("Erro no prepare: " . $mysqli->error);
+                continue;
+            }
+
+            $stmt->bind_param("iissss",
+                $id_escola,
                 $_SESSION['id_usuario'],
                 $nome,
                 $cpf,
-                $bairro
+                $bairro,
+                $nome_escola_aluno
             );
 
-            $stmt->execute();
+            if ($stmt->execute()) {
+                $alunos_salvos++;
+                echo "<script>console.log('Aluno salvo: $nome, Escola: $nome_escola_aluno');</script>";
+            } else {
+                error_log("Erro ao salvar aluno: " . $stmt->error);
+            }
+
+            $stmt->close();
         }
 
-        echo "<script>alert('Alunos cadastrados com sucesso!'); window.location.href='painel.php';</script>";
-        header('Location: ../painel/painel.php');
+        if ($alunos_salvos > 0) {
+            echo "<script>alert('$alunos_salvos aluno(s) cadastrado(s) com sucesso!'); window.location.href='../painel/painel.php';</script>";
+        } else {
+            echo "<script>alert('Nenhum aluno foi cadastrado. Verifique os dados.'); window.history.back();</script>";
+        }
         exit;
     }
 }
