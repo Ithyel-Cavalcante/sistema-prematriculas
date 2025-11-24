@@ -26,6 +26,38 @@ if (isset($_POST['adicionar_usuario'])) {
         exit;    
     }
 
+    $stmt_check = $mysqli->prepare("SELECT cpf_usuario, email_usuario FROM usuario WHERE cpf_usuario = ? OR email_usuario = ?");
+
+    if (!$stmt_check) {
+        echo "<script>alert('Erro ao preparar verificação de duplicidade: " . $mysqli->error . "'); window.history.back();</script>";
+        exit;
+    }
+
+    $stmt_check = $mysqli->prepare("SELECT cpf_usuario, email_usuario FROM usuario WHERE cpf_usuario = ? OR email_usuario = ?");
+
+    $stmt_check->bind_param("ss", $cpf_usuario, $email_usuario);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+
+    if ($result_check->num_rows > 0) {
+        $existing_user = $result_check->fetch_assoc();
+        $error_message = '';
+        
+        if ($existing_user['cpf_usuario'] === $cpf_usuario) {
+            $error_message = 'Erro: O CPF informado já está cadastrado.';
+        } 
+        else if ($existing_user['email_usuario'] === $email_usuario) {
+            $error_message = 'Erro: O Email informado já está cadastrado.';
+        }
+
+        $stmt_check->close();
+        
+        echo "<script>alert('$error_message'); window.history.back();</script>";
+        exit;
+    }
+
+    $stmt_check->close();
+
     $senha_hash = password_hash($senha_usuario, PASSWORD_DEFAULT);
 
     $stmt = $mysqli->prepare("INSERT INTO usuario (nome_usuario, cpf_usuario, bairro_usuario, qtd_alunos, email_usuario, senha_usuario) VALUES (?, ?, ?, ?, ?, ?)");
