@@ -64,7 +64,6 @@ $stmt_all->close();
 
                 <input type='text' name='alunos[$i][cpf_aluno]' placeholder='CPF do aluno $i' maxlength='11' required><br><br>
 
-                <!-- Campo oculto com o bairro do usuário -->
                 <input type='hidden' name='alunos[$i][bairro_usuario]' value='".htmlspecialchars($bairro_usuario)."'>
 
                 <label>Escolha a escola:</label><br>

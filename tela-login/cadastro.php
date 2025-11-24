@@ -1,3 +1,30 @@
+<?php
+session_start();
+include '../conn.php';
+function buscarBairros($mysqli) {
+    
+    $stmt = $mysqli->prepare("SELECT id_bairro, nome_bairro FROM bairro ORDER BY nome_bairro ASC");
+    
+    if (!$stmt) {
+        error_log("Erro ao preparar consulta de bairros: " . $mysqli->error);
+        return []; 
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $bairros = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $bairros[] = $row;
+    }
+
+    $stmt->close();
+    return $bairros;
+}
+
+$lista_bairros = buscarBairros($mysqli);
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
   <head>
@@ -45,16 +72,20 @@
           </div>
 
           <div class="flex flex-col gap-2">
-            <label>Bairro <span class="text-red-500">*</span></label>
-            <input
-              class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
-              name="bairro_usuario"
-              placeholder="Seu bairro"
-              type="text"
-              maxlength="50"
-              required
-            />
-          </div>
+            <label>Bairro <span class="text-red-500">*</span></label>
+            <select
+              class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
+              name="bairro_usuario"
+              required>
+              <option value="">Selecione seu bairro</option>
+                <?php
+                    foreach ($lista_bairros as $bairro) {
+                      $valor = htmlspecialchars($bairro['nome_bairro']);
+                    echo "<option value='{$valor}'>" . $valor . "</option>";
+                  }
+                ?>
+            </select>
+          </div>
 
           <div class="flex flex-col gap-2">
             <label>Quantidade de alunos <span class="text-red-500">*</span></label>
