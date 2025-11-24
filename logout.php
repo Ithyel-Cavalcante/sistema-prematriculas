@@ -5,6 +5,6 @@ if(!isset($_SESSION)){
 }
 
 session_destroy();
-header("Location: ../tela-login/login.php");
+header('Location: tela-login/login.php');
 
 ?>
