@@ -1,5 +1,7 @@
 <?php
+
 session_start();
+include '../protect.php';
 include '../conn.php';
 
 if (!isset($_SESSION['id_usuario'])) {
