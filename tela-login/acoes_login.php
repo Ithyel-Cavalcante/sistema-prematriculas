@@ -131,6 +131,7 @@ if(isset($_POST['salvar_alunos'])){
             $nome   = trim($aluno['nome_aluno'] ?? '');
             $cpf    = trim($aluno['cpf_aluno'] ?? '');
             $bairro = trim($aluno['bairro_usuario'] ?? '');
+            $nasc_aluno = trim($aluno['data_nascimento']);
             
             $escola_data = explode('|', $aluno['escola'] ?? '');
             $id_escola = intval($escola_data[0] ?? 0);
@@ -141,8 +142,8 @@ if(isset($_POST['salvar_alunos'])){
             }
 
             $stmt = $mysqli->prepare("
-                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, nome_escola_aluno)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
             if ($stmt === false) {
@@ -150,12 +151,13 @@ if(isset($_POST['salvar_alunos'])){
                 continue;
             }
 
-            $stmt->bind_param("iissss",
+            $stmt->bind_param("iisssss",
                 $id_escola,
                 $_SESSION['id_usuario'],
                 $nome,
                 $cpf,
                 $bairro,
+                $nasc_aluno,
                 $nome_escola_aluno
             );
 

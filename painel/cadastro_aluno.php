@@ -66,6 +66,8 @@ $stmt_all->close();
 
                 <input type='hidden' name='alunos[$i][bairro_usuario]' value='".htmlspecialchars($bairro_usuario)."'>
 
+                <input type='date' name='alunos[$i][data_nascimento]' placeholder='Data de nascimento' required><br><br>
+
                 <label>Escolha a escola:</label><br>
                 <select name='alunos[$i][escola]' required>
                     <option value=''>Selecione a escola</option>";
