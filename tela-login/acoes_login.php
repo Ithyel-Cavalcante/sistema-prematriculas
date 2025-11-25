@@ -106,7 +106,7 @@ if (isset($_POST['login_usuario'])) {
                 $redirect = '../painel/painel_admin.php';
             }else{
                 $_SESSION['is_admin'] = false;
-                $redirect = '../tela-login/painel.php';
+                $redirect = '../painel/painel.php';
             }
             
             echo "<script>alert('Login realizado com sucesso!'); window.location.href = '$redirect';</script>";
