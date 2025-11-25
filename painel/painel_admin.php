@@ -53,6 +53,10 @@ $total_alunos_cadastrados = $result_alunos->num_rows;
     
     <h2>Ações</h2>
     
+    <a href="../painel/gerar_relatorio.php">
+        <button type="button">Gerar Relatório</button>
+    </a>
+
     <a href="../logout.php">
         <button>Sair</button>
     </a>
