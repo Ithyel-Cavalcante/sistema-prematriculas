@@ -2,6 +2,7 @@
 session_start();
 include "../conn.php";
 
+$admin_email = 'admin@email.com';
 
 if (isset($_POST['adicionar_usuario'])) {
     $nome_usuario = trim($_POST['nome_usuario'] ?? '');
@@ -99,8 +100,16 @@ if (isset($_POST['login_usuario'])) {
             $_SESSION['nome_usuario'] = $row['nome_usuario'];
             $_SESSION['qtd_alunos'] = $row['qtd_alunos'];
             $_SESSION['bairro_usuario'] = $row['bairro_usuario'];
+
+            if($email_usuario === $admin_email){
+                $_SESSION['is_admin'] = true;
+                $redirect = '../painel/painel_admin.php';
+            }else{
+                $_SESSION['is_admin'] = false;
+                $redirect = '../tela-login/painel.php';
+            }
             
-            echo "<script>alert('Login realizado com sucesso!'); window.location.href = '../painel/painel.php';</script>";
+            echo "<script>alert('Login realizado com sucesso!'); window.location.href = '$redirect';</script>";
         } else {
             echo "<script>alert('Senha incorreta.'); window.history.back();</script>";
         }
