@@ -112,6 +112,19 @@ $lista_bairros = buscarBairros($mysqli);
             />
           </div>
 
+          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <label>Telefone <span class="text-red-500">*</span></label>
+            <input
+              class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
+              name="telefone_usuario"
+              type="tel"
+              placeholder="(xx) xxxxx-xxxx"
+              maxlength="11"
+              required
+            />
+          </div>
+
           <div class="flex flex-col gap-2">
             <label>Email <span class="text-red-500">*</span></label>
             <input

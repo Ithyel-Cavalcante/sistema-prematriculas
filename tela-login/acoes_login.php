@@ -11,8 +11,9 @@ if (isset($_POST['adicionar_usuario'])) {
     $email_usuario = trim($_POST['email_usuario'] ?? '');
     $senha_usuario = trim($_POST['senha_usuario'] ?? '');
     $qtd_alunos = trim($_POST['qtd_alunos'] ?? '');
+    $telefone_user = trim($_POST['telefone_usuario'] ?? '');
 
-    if (empty($nome_usuario) || empty($cpf_usuario) || empty($bairro_usuario) || empty($senha_usuario) || empty($qtd_alunos || empty($email_usuario))) {
+    if (empty($nome_usuario) || empty($cpf_usuario) || empty($bairro_usuario) || empty($senha_usuario) || empty($qtd_alunos) || empty($email_usuario) || empty($telefone_user)) {
         echo "<script>alert('Erro: Preencha todos os campos.'); window.history.back();</script>";
         exit;
     }
@@ -61,13 +62,14 @@ if (isset($_POST['adicionar_usuario'])) {
 
     $senha_hash = password_hash($senha_usuario, PASSWORD_DEFAULT);
 
-    $stmt = $mysqli->prepare("INSERT INTO usuario (nome_usuario, cpf_usuario, bairro_usuario, qtd_alunos, email_usuario, senha_usuario) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $mysqli->prepare("INSERT INTO usuario (nome_usuario, cpf_usuario, bairro_usuario, qtd_alunos, email_usuario, senha_usuario, telefone_usuario) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
         echo "<script>alert('Erro ao preparar consulta: " . $mysqli->error . "'); window.history.back();</script>";
         exit;
     }
 
-    $stmt->bind_param("ssssss", $nome_usuario, $cpf_usuario, $bairro_usuario, $qtd_alunos, $email_usuario, $senha_hash);
+    $stmt->bind_param("sssssss", $nome_usuario, $cpf_usuario, $bairro_usuario, $qtd_alunos, $email_usuario, $senha_hash, $telefone_user);
 
     if ($stmt->execute()) {
         echo "<script>alert('Usuário cadastrado com sucesso!'); window.location.href = 'login.php';</script>";
