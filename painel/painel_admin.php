@@ -12,6 +12,7 @@ $stmt_alunos = $mysqli->prepare("
 $stmt_alunos->execute();
 $result_alunos = $stmt_alunos->get_result();
 $total_alunos_cadastrados = $result_alunos->num_rows;
+
 ?>
 
 <!DOCTYPE html>
@@ -23,7 +24,7 @@ $total_alunos_cadastrados = $result_alunos->num_rows;
 </head>
 <body>
     <h1>Painel do Admin</h1>
-    
+
     <h2>Alunos Cadastrados</h2>
     
     <?php if ($total_alunos_cadastrados > 0): ?>

@@ -107,6 +107,7 @@ $lista_bairros = buscarBairros($mysqli);
               name="cpf_usuario"
               type="text"
               placeholder="000.000.000-00"
+              maxlength="11"
               required
             />
           </div>
