@@ -126,44 +126,106 @@ if (isset($_POST['login_usuario'])) {
 if(isset($_POST['salvar_alunos'])){
     if (!empty($_POST['alunos'])) {
         $alunos_salvos = 0;
+        $erros_etarios = [];
+
+        $ano_atual = date('Y');
+        $data_corte = new DateTime("$ano_atual-03-31");
         
-        foreach ($_POST['alunos'] as $aluno) {
-            $nome   = trim($aluno['nome_aluno'] ?? '');
-            $cpf    = trim($aluno['cpf_aluno'] ?? '');
+        foreach ($_POST['alunos'] as $i => $aluno) {
+            $nome = trim($aluno['nome_aluno'] ?? '');
+            $cpf = trim($aluno['cpf_aluno'] ?? '');
             $bairro = trim($aluno['bairro_usuario'] ?? '');
-            $nasc_aluno = trim($aluno['data_nascimento']);
+            $data_nascimento_aluno = trim($aluno['data_nascimento'] ?? '');
             
             $escola_data = explode('|', $aluno['escola'] ?? '');
             $id_escola = intval($escola_data[0] ?? 0);
             $nome_escola_aluno = trim($escola_data[1] ?? 'Escola não informada');
             
-            if(empty($nome) || empty($cpf) || $id_escola == 0) {
+            if(empty($nome) || empty($cpf) || $id_escola == 0 || empty($data_nascimento_aluno)) {
+                error_log("Aluno " . ($i+1) . " ignorado: Campos obrigatórios ausentes.");
                 continue;
             }
 
-            $stmt = $mysqli->prepare("
-                INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-
-            if ($stmt === false) {
-                error_log("Erro no prepare: " . $mysqli->error);
+            try {
+                $data_nascimento = new DateTime($data_nascimento_aluno);
+                $intervalo = $data_nascimento->diff($data_corte);
+                $idade_do_aluno_no_corte = $intervalo->y;
+            } catch (Exception $e) {
+                error_log("Erro na data de nascimento do Aluno " . ($i+1) . ": " . $e->getMessage());
+                $erros_etarios[] = "Aluno $nome: Data de nascimento inválida.";
                 continue;
             }
 
-            $stmt->bind_param("iisssss",
-                $id_escola,
-                $_SESSION['id_usuario'],
-                $nome,
-                $cpf,
-                $bairro,
-                $nasc_aluno,
-                $nome_escola_aluno
-            );
+            $sql_verifica_faixa = "
+                SELECT 
+                    nome_turma 
+                FROM 
+                    escola_faixa_etaria 
+                WHERE 
+                    id_escola = ?
+                AND 
+                    ? BETWEEN idade_minima_anos AND idade_maxima_anos
+                LIMIT 1
+            ";
+            
+            $stmt_verifica = $mysqli->prepare($sql_verifica_faixa);
+            
+            if ($stmt_verifica === false) {
+                error_log("Erro ao preparar verificação etária: " . $mysqli->error);
+                $erros_etarios[] = "Erro interno ao verificar faixa etária para $nome.";
+                continue;
+            }
+
+            $stmt_verifica->bind_param("ii", $id_escola, $idade_do_aluno_no_corte);
+            $stmt_verifica->execute();
+            $result_verifica = $stmt_verifica->get_result();
+            
+            if ($result_verifica->num_rows == 0) {
+                $erros_etarios[] = "Aluno $nome (idade $idade_do_aluno_no_corte anos): A escola '$nome_escola_aluno' não possui turma para esta faixa etária no corte de $ano_atual. Por favor, corrija no formulário.";
+                $stmt_verifica->close();
+                continue; 
+            }
+            
+            $stmt_verifica->close();
+            
+            $status_col_exists = $mysqli->query("SHOW COLUMNS FROM `alunos` LIKE 'status_matricula'")->num_rows > 0;
+            $status_default = 'Aguardando Avaliação';
+
+            if ($status_col_exists) {
+                 $sql_insert = "
+                    INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno, status_matricula)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 ";
+                 $stmt = $mysqli->prepare($sql_insert);
+                 $stmt->bind_param("iissssss",
+                    $id_escola,
+                    $_SESSION['id_usuario'],
+                    $nome,
+                    $cpf,
+                    $bairro,
+                    $data_nascimento_aluno,
+                    $nome_escola_aluno,
+                    $status_default
+                 );
+            } else {
+                 $sql_insert = "
+                    INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                 ";
+                 $stmt = $mysqli->prepare($sql_insert);
+                 $stmt->bind_param("iisssss",
+                    $id_escola,
+                    $_SESSION['id_usuario'],
+                    $nome,
+                    $cpf,
+                    $bairro,
+                    $data_nascimento_aluno,
+                    $nome_escola_aluno
+                 );
+            }
 
             if ($stmt->execute()) {
                 $alunos_salvos++;
-                echo "<script>console.log('Aluno salvo: $nome, Escola: $nome_escola_aluno');</script>";
             } else {
                 error_log("Erro ao salvar aluno: " . $stmt->error);
             }
@@ -171,11 +233,41 @@ if(isset($_POST['salvar_alunos'])){
             $stmt->close();
         }
 
+        $msg_alerta = "";
+        $redirecionar = false;
+
         if ($alunos_salvos > 0) {
-            echo "<script>alert('$alunos_salvos aluno(s) cadastrado(s) com sucesso!'); window.location.href='../painel/painel.php';</script>";
-        } else {
-            echo "<script>alert('Nenhum aluno foi cadastrado. Verifique os dados.'); window.history.back();</script>";
+            $msg_alerta .= "$alunos_salvos aluno(s) cadastrado(s) com sucesso!";
+            $redirecionar = true; 
         }
+        
+        if (!empty($erros_etarios)) {
+            if ($alunos_salvos > 0) {
+                $msg_alerta .= "\n\nOBSERVAÇÃO: Erros encontrados para alguns alunos:";
+            } else {
+                $msg_alerta = "ATENÇÃO! Não foi possível salvar nenhum aluno devido aos seguintes problemas:";
+            }
+            
+            $msg_alerta .= "\n- " . implode("\n- ", $erros_etarios);
+            
+            if ($alunos_salvos == 0) {
+                 $redirecionar = false; 
+            }
+        }
+
+        if (!empty($msg_alerta)) {
+            $redirect_url = $redirecionar ? '../painel/painel.php' : '../painel/cadastro_aluno.php'; // Volta para o cadastro se houver erros sem salvar
+            
+            $js_msg = json_encode($msg_alerta); 
+
+            echo "<script>
+                alert($js_msg); 
+                window.location.href='$redirect_url';
+            </script>";
+        } else {
+             echo "<script>alert('Nenhum aluno foi submetido. Verifique o formulário.'); window.history.back();</script>";
+        }
+        
         exit;
     }
 }
