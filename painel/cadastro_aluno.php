@@ -20,7 +20,6 @@ while ($row_all = $result_all->fetch_assoc()) {
 }
 
 if (empty($todas_escolas)) {
-    // Se não houver escolas, não há porque continuar
     $msg_erro_escolas = "<p style='color: red;'>NENHUMA ESCOLA CADASTRADA NO BANCO DE DADOS! (Verifique a tabela 'escolas')</p>";
 } else {
     $msg_erro_escolas = "";
@@ -35,7 +34,6 @@ $stmt_all->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Alunos</title>
-    <!-- Inclua aqui seu CSS, se houver -->
 </head>
 <body>
 
