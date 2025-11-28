@@ -18,7 +18,7 @@ SELECT
     a.bairro_aluno, 
     a.data_nascimento,
     a.turma_alocada,
-    u.telefone_usuario  
+    u.telefone_usuario
 FROM 
     alunos a 
 LEFT JOIN 
