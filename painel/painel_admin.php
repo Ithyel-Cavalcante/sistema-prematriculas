@@ -14,11 +14,12 @@ SELECT
     a.cpf_aluno, 
     a.bairro_aluno, 
     a.data_nascimento,
+    a.turma_alocada,
     u.telefone_usuario  
 FROM 
     alunos a 
 INNER JOIN 
-    usuario u ON a.id_usuario = u.id_usuario -- Junção com a tabela usuario
+    usuario u ON a.id_usuario = u.id_usuario 
 ORDER BY 
     a.id_aluno DESC
 ";
@@ -164,7 +165,7 @@ $total_alunos_cadastrados = $result_alunos->num_rows;
                 <td><?php echo htmlspecialchars($aluno['cpf_aluno']); ?></td>
                 <td><?php echo htmlspecialchars($aluno['bairro_aluno']); ?></td>
                 <td><?php echo htmlspecialchars($nome_escola); ?></td>
-                <td><?php echo htmlspecialchars($nome_turma); ?></td>
+                <td><?php echo htmlspecialchars($aluno['turma_alocada']); ?></td>
                 <td><?php echo htmlspecialchars($aluno['data_nascimento']); ?></td>
                 <td><?php echo htmlspecialchars($aluno['telefone_usuario']); ?></td>
             </tr>

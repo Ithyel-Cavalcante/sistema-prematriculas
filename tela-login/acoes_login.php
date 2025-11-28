@@ -4,6 +4,16 @@ include "../conn.php";
 
 $admin_email = 'admin@email.com';
 
+
+if (!function_exists('array_by_ref')) {
+    function array_by_ref(&$arr) {
+        $refs = [];
+        foreach($arr as $key => $value)
+            $refs[$key] = &$arr[$key];
+        return $refs;
+    }
+}
+
 if (isset($_POST['adicionar_usuario'])) {
     $nome_usuario = trim($_POST['nome_usuario'] ?? '');
     $cpf_usuario = trim($_POST['cpf_usuario'] ?? '');
@@ -143,6 +153,8 @@ if(isset($_POST['salvar_alunos'])){
             $id_escola = intval($escola_data[0] ?? 0);
             $nome_escola_aluno = trim($escola_data[1] ?? 'Escola não informada');
             
+            $turma_alocada = 'Não Alocado'; 
+
             if(empty($nome) || empty($cpf) || $id_escola == 0 || empty($data_nascimento_aluno)) {
                 error_log("Aluno " . ($i+1) . " ignorado: Campos obrigatórios ausentes.");
                 continue;
@@ -158,7 +170,8 @@ if(isset($_POST['salvar_alunos'])){
                 continue;
             }
 
-            $sql_verifica_faixa = "
+            
+            $sql_turmas_compativeis = "
                 SELECT 
                     nome_turma 
                 FROM 
@@ -167,65 +180,108 @@ if(isset($_POST['salvar_alunos'])){
                     id_escola = ?
                 AND 
                     ? BETWEEN idade_minima_anos AND idade_maxima_anos
-                LIMIT 1
+                ORDER BY 
+                    id_faixa ASC
             ";
             
-            $stmt_verifica = $mysqli->prepare($sql_verifica_faixa);
+            $stmt_turmas = $mysqli->prepare($sql_turmas_compativeis);
             
-            if ($stmt_verifica === false) {
-                error_log("Erro ao preparar verificação etária: " . $mysqli->error);
-                $erros_etarios[] = "Erro interno ao verificar faixa etária para $nome.";
+            if ($stmt_turmas === false) {
+                error_log("Erro ao preparar busca de turmas: " . $mysqli->error);
+                $erros_etarios[] = "Erro interno ao verificar faixas etárias para $nome.";
                 continue;
             }
 
-            $stmt_verifica->bind_param("ii", $id_escola, $idade_do_aluno_no_corte);
-            $stmt_verifica->execute();
-            $result_verifica = $stmt_verifica->get_result();
+            $stmt_turmas->bind_param("ii", $id_escola, $idade_do_aluno_no_corte);
+            $stmt_turmas->execute();
+            $result_turmas = $stmt_turmas->get_result();
+            $turmas_array = [];
             
-            if ($result_verifica->num_rows == 0) {
+            while ($row = $result_turmas->fetch_assoc()) {
+                $turmas_array[] = $row['nome_turma'];
+            }
+            $stmt_turmas->close();
+            
+            if (empty($turmas_array)) {
                 $erros_etarios[] = "Aluno $nome (idade $idade_do_aluno_no_corte anos): A escola '$nome_escola_aluno' não possui turma para esta faixa etária no corte de $ano_atual. Por favor, corrija no formulário.";
-                $stmt_verifica->close();
                 continue; 
             }
+
+            $num_turmas = count($turmas_array);
+
+            $sql_count_faixa = "
+                SELECT 
+                    COUNT(a.id_aluno) AS total_alocados
+                FROM 
+                    alunos a
+                INNER JOIN 
+                    escola_faixa_etaria efe ON a.id_escola = efe.id_escola
+                WHERE 
+                    a.id_escola = ? 
+                AND 
+                    DATEDIFF(?, a.data_nascimento) / 365.25 BETWEEN efe.idade_minima_anos AND efe.idade_maxima_anos
+            ";
+
+            $stmt_count_faixa = $mysqli->prepare($sql_count_faixa);
+            $data_corte_str = $data_corte->format('Y-m-d');
             
-            $stmt_verifica->close();
-            
+            if ($stmt_count_faixa === false) {
+                error_log("Erro ao preparar contagem de faixa etária: " . $mysqli->error);
+            } else {
+                
+                $sql_count_faixa_simples = "
+                    SELECT 
+                        COUNT(a.id_aluno) AS total_alocados
+                    FROM 
+                        alunos a
+                    WHERE 
+                        a.id_escola = ? 
+                "; 
+
+                $sql_count_total = "SELECT COUNT(id_aluno) AS total_alunos FROM alunos";
+                $result_count_total = $mysqli->query($sql_count_total);
+                $total_alunos_cadastrados_agora = $result_count_total->fetch_assoc()['total_alunos'] ?? 0;
+                
+                $indice_revezamento = $total_alunos_cadastrados_agora % $num_turmas; 
+                
+                $turma_alocada = $turmas_array[$indice_revezamento];
+            }
+                        
             $status_col_exists = $mysqli->query("SHOW COLUMNS FROM `alunos` LIKE 'status_matricula'")->num_rows > 0;
+            $turma_col_exists = $mysqli->query("SHOW COLUMNS FROM `alunos` LIKE 'turma_alocada'")->num_rows > 0;
             $status_default = 'Aguardando Avaliação';
 
+            $colunas = "id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno";
+            $placeholders = "?, ?, ?, ?, ?, ?, ?";
+            $tipos = "iisssss";
+            $parametros = [$id_escola, $_SESSION['id_usuario'], $nome, $cpf, $bairro, $data_nascimento_aluno, $nome_escola_aluno];
+
+            if ($turma_col_exists) {
+                $colunas .= ", turma_alocada";
+                $placeholders .= ", ?";
+                $tipos .= "s";
+                $parametros[] = $turma_alocada;
+            }
+            
             if ($status_col_exists) {
-                 $sql_insert = "
-                    INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno, status_matricula)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                 ";
-                 $stmt = $mysqli->prepare($sql_insert);
-                 $stmt->bind_param("iissssss",
-                    $id_escola,
-                    $_SESSION['id_usuario'],
-                    $nome,
-                    $cpf,
-                    $bairro,
-                    $data_nascimento_aluno,
-                    $nome_escola_aluno,
-                    $status_default
-                 );
-            } else {
-                 $sql_insert = "
-                    INSERT INTO alunos (id_escola, id_usuario, nome_aluno, cpf_aluno, bairro_aluno, data_nascimento, nome_escola_aluno)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                 ";
-                 $stmt = $mysqli->prepare($sql_insert);
-                 $stmt->bind_param("iisssss",
-                    $id_escola,
-                    $_SESSION['id_usuario'],
-                    $nome,
-                    $cpf,
-                    $bairro,
-                    $data_nascimento_aluno,
-                    $nome_escola_aluno
-                 );
+                $colunas .= ", status_matricula";
+                $placeholders .= ", ?";
+                $tipos .= "s";
+                $parametros[] = $status_default;
             }
 
+            $sql_insert = "INSERT INTO alunos ($colunas) VALUES ($placeholders)";
+            
+            $stmt = $mysqli->prepare($sql_insert);
+            
+            $bind_params = array_merge([$tipos], $parametros);
+            
+            if (!call_user_func_array([$stmt, 'bind_param'], array_by_ref($bind_params))) {
+                 error_log("Erro ao fazer bind_param: " . $stmt->error);
+                 $erros_etarios[] = "Erro interno (Bind Param) ao tentar salvar $nome.";
+                 continue;
+            }
+            
             if ($stmt->execute()) {
                 $alunos_salvos++;
             } else {
@@ -235,6 +291,7 @@ if(isset($_POST['salvar_alunos'])){
             $stmt->close();
         }
 
+        
         $msg_alerta = "";
         $redirecionar = false;
 
@@ -253,12 +310,12 @@ if(isset($_POST['salvar_alunos'])){
             $msg_alerta .= "\n- " . implode("\n- ", $erros_etarios);
             
             if ($alunos_salvos == 0) {
-                 $redirecionar = false; 
+                $redirecionar = false; 
             }
         }
 
         if (!empty($msg_alerta)) {
-            $redirect_url = $redirecionar ? '../painel/painel.php' : '../painel/cadastro_aluno.php'; // Volta para o cadastro se houver erros sem salvar
+            $redirect_url = $redirecionar ? '../painel/painel.php' : '../painel/cadastro_aluno.php'; 
             
             $js_msg = json_encode($msg_alerta); 
 
@@ -267,7 +324,7 @@ if(isset($_POST['salvar_alunos'])){
                 window.location.href='$redirect_url';
             </script>";
         } else {
-             echo "<script>alert('Nenhum aluno foi submetido. Verifique o formulário.'); window.history.back();</script>";
+            echo "<script>alert('Nenhum aluno foi submetido. Verifique o formulário.'); window.history.back();</script>";
         }
         
         exit;
