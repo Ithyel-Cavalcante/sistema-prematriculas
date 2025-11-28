@@ -5,6 +5,7 @@ include '../conn.php';
 include '../protect.php';
 
 $ano_atual = date('Y');
+//alterar para a data de corte municipal
 $data_corte = new DateTime("$ano_atual-03-31"); 
 $contagem_por_turma = [];
 $turmas_faixa_etaria = []; 
@@ -251,12 +252,6 @@ if ($total_alunos_cadastrados > 0) {
 </head>
 <body>
     <h1>Painel do Admin</h1>
-
-    <div style="margin-bottom: 20px;">
-        <a href="../painel/cadastro_aluno.php">
-            <button type="button" class="btn-acao">Cadastrar Aluno</button>
-        </a>
-    </div>
 
     <h2>Estatísticas de Pré-matrículas (Total: <?php echo $total_alunos_cadastrados; ?>)</h2>
     <div class="summary-container">

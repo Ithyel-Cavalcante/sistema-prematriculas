@@ -141,6 +141,7 @@ if(isset($_POST['salvar_alunos'])){
         $erros_etarios = [];
 
         $ano_atual = date('Y');
+        //alterar para a data de corte do municipal
         $data_corte = new DateTime("$ano_atual-03-31");
         
         foreach ($_POST['alunos'] as $i => $aluno) {
