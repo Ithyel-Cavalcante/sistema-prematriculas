@@ -57,8 +57,10 @@ $lista_bairros = buscarBairros($mysqli);
         Cadastro - Sistema de Pré Matrículas
       </h2>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         <div class="flex flex-col gap-4">
+
           <div class="flex flex-col gap-2">
             <label>Nome <span class="text-red-500">*</span></label>
             <input
@@ -72,20 +74,21 @@ $lista_bairros = buscarBairros($mysqli);
           </div>
 
           <div class="flex flex-col gap-2">
-            <label>Bairro <span class="text-red-500">*</span></label>
-            <select
-              class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
-              name="bairro_usuario"
-              required>
-              <option value="">Selecione seu bairro</option>
-                <?php
-                    foreach ($lista_bairros as $bairro) {
-                      $valor = htmlspecialchars($bairro['nome_bairro']);
-                    echo "<option value='{$valor}'>" . $valor . "</option>";
-                  }
-                ?>
-            </select>
-          </div>
+            <label>Bairro <span class="text-red-500">*</span></label>
+            <select
+              class="w-full px-4 py-2 rounded-md border-2 border-zinc-200 outline-green-400"
+              name="bairro_usuario"
+              required
+            >
+              <option value="">Selecione seu bairro</option>
+              <?php
+                foreach ($lista_bairros as $bairro) {
+                  $valor = htmlspecialchars($bairro['nome_bairro']);
+                  echo "<option value='{$valor}'>{$valor}</option>";
+                }
+              ?>
+            </select>
+          </div>
 
           <div class="flex flex-col gap-2">
             <label>Quantidade de alunos <span class="text-red-500">*</span></label>
@@ -97,9 +100,10 @@ $lista_bairros = buscarBairros($mysqli);
               required
             />
           </div>
-        </div>
 
+        </div>
         <div class="flex flex-col gap-4">
+
           <div class="flex flex-col gap-2">
             <label>CPF <span class="text-red-500">*</span></label>
             <input
@@ -112,7 +116,6 @@ $lista_bairros = buscarBairros($mysqli);
             />
           </div>
 
-          <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-2">
             <label>Telefone <span class="text-red-500">*</span></label>
             <input
@@ -148,16 +151,18 @@ $lista_bairros = buscarBairros($mysqli);
               required
             />
           </div>
+
         </div>
       </div>
-
       <button
         type="submit"
         name="adicionar_usuario"
-        class="mt-4 px-4 py-2 bg-green-700 text-white font-bold rounded transition hover:bg-green-900 cursor-pointer"
+        class="w-full md:w-auto mt-4 px-6 py-3 bg-green-700 text-white font-bold rounded transition hover:bg-green-900 cursor-pointer text-center"
       >
         Cadastrar
       </button>
+
     </form>
   </body>
 </html>
+

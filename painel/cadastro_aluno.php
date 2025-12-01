@@ -30,71 +30,133 @@ $stmt_all->close();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Alunos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Alunos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{
+            font-family: Inter
+        }
+    </style>
 </head>
-<body>
 
-<h2>Cadastro de <?php echo $qtd_alunos; ?> aluno(s)</h2>
-<?php echo $msg_erro_escolas; ?>
+<body class="h-screen">
 
-<form action="../tela-login/acoes_login.php" method="POST">
+    <div class="max-w-4xl mx-auto py-10">
 
-    <?php
-    if ($qtd_alunos > 0) {
-    for ($i = 1; $i <= $qtd_alunos; $i++) {
+        <div class="bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">
+                Cadastro de <?php echo $qtd_alunos; ?> aluno(s)
+            </h2>
 
-            $escolas_do_bairro = [];
-            $stmt_bairro = $mysqli->prepare("SELECT id_escola, nome_escola FROM escolas WHERE bairro_escola = ?");
-            $stmt_bairro->bind_param("s", $bairro_usuario);
-            $stmt_bairro->execute();
-            $result_bairro = $stmt_bairro->get_result();
-            
-            while ($row_bairro = $result_bairro->fetch_assoc()) {
-                $escolas_do_bairro[] = $row_bairro;
-            }
-            $stmt_bairro->close();
-            
-     echo "
-            <div class='aluno-box' style='border: 1px solid #ccc; padding: 15px; margin-bottom: 20px;'>
-                <h3>Aluno $i</h3>
+            <?php echo $msg_erro_escolas; ?>
 
-                <input type='text' name='alunos[$i][nome_aluno]' placeholder='Nome do aluno $i' required><br><br>
+            <form action="../tela-login/acoes_login.php" method="POST" class="mt-8 space-y-6">
 
-                <input type='text' name='alunos[$i][cpf_aluno]' placeholder='CPF do aluno $i' maxlength='11' required><br><br>
+                <?php
+                if ($qtd_alunos > 0) {
 
-                <input type='hidden' name='alunos[$i][bairro_usuario]' value='".htmlspecialchars($bairro_usuario)."'>
+                    for ($i = 1; $i <= $qtd_alunos; $i++) {
 
-                <!-- CAMPO CHAVE: Data de Nascimento é usada para o filtro etário! -->
-                <label>Data de Nascimento:</label>
-                <input type='date' name='alunos[$i][data_nascimento]' required><br><br>
+                        $escolas_do_bairro = [];
+                        $stmt_bairro = $mysqli->prepare("SELECT id_escola, nome_escola FROM escolas WHERE bairro_escola = ?");
+                        $stmt_bairro->bind_param("s", $bairro_usuario);
+                        $stmt_bairro->execute();
+                        $result_bairro = $stmt_bairro->get_result();
 
-                <label>Escolha a escola (Bairro: ".htmlspecialchars($bairro_usuario)."):</label><br>
-                <select name='alunos[$i][escola]' required>
-                    <option value=''>Selecione a escola</option>";
+                        while ($row_bairro = $result_bairro->fetch_assoc()) {
+                            $escolas_do_bairro[] = $row_bairro;
+                        }
+                        $stmt_bairro->close();
 
-                    if (!empty($escolas_do_bairro)) {
-                        foreach ($escolas_do_bairro as $esc) {
-                        echo "<option value='{$esc['id_escola']}|{$esc['nome_escola']}'>
-                                {$esc['nome_escola']}
-                            </option>";
+                        echo "
+                        <div class='bg-gray-50 p-6 rounded-lg border shadow-sm'>
+                            <h3 class='text-xl font-semibold text-gray-800 mb-4'>Aluno $i</h3>
+
+                            <div class='grid grid-cols-1 md:grid-cols-2 gap-4'>
+
+                                <div>
+                                    <label class='block text-sm font-medium text-gray-700'>Nome do Aluno</label>
+                                    <input 
+                                        type='text' 
+                                        name='alunos[$i][nome_aluno]' 
+                                        class='mt-1 w-full p-3 border rounded-lg outline-none '
+                                        placeholder='Nome do aluno $i'
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class='block text-sm font-medium text-gray-700'>CPF</label>
+                                    <input 
+                                        type='text'
+                                        maxlength='11'
+                                        name='alunos[$i][cpf_aluno]'
+                                        class='mt-1 w-full p-3 border rounded-lg outline-none'
+                                        placeholder='Digite o CPF'
+                                        required
+                                    >
+                                </div>
+
+                                <input type='hidden' name='alunos[$i][bairro_usuario]' value='" . htmlspecialchars($bairro_usuario) . "'>
+
+                                <div>
+                                    <label class='block text-sm font-medium text-gray-700'>Data de Nascimento</label>
+                                    <input 
+                                        type='date'
+                                        name='alunos[$i][data_nascimento]'
+                                        class='mt-1 w-full p-3 border rounded-lg outline-none'
+                                        required
+                                    >
+                                </div>
+
+                                <div>
+                                    <label class='block text-sm font-medium text-gray-700'>
+                                        Escola do Bairro: " . htmlspecialchars($bairro_usuario) . "
+                                    </label>
+                                    <select 
+                                        name='alunos[$i][escola]'
+                                        class='mt-1 w-full p-3 border rounded-lg outline-none '
+                                        required
+                                    >
+                                        <option value=''>Selecione a escola</option>";
+
+                        if (!empty($escolas_do_bairro)) {
+                            foreach ($escolas_do_bairro as $esc) {
+                                echo "<option value='{$esc['id_escola']}|{$esc['nome_escola']}'>{$esc['nome_escola']}</option>";
                             }
-     } else {
-    echo "<option value=''>NENHUMA ESCOLA DISPONÍVEL NESTE BAIRRO</option>";
-    }
+                        } else {
+                            echo "<option value=''>NENHUMA ESCOLA DISPONÍVEL NESTE BAIRRO</option>";
+                        }
 
-    echo "</select><br><br>
-            </div>";
-    }
-     } else {
-     echo "<p>O usuário não indicou a quantidade de alunos para cadastro.</p>";
-    }
-    ?>
+                        echo "
+                                    </select>
+                                </div>
 
-    <button type="submit" name="salvar_alunos">Salvar Alunos</button>
-</form>
+                            </div>
+                        </div>
+                        ";
+                    }
+                } else {
+                    echo "<p>O usuário não indicou a quantidade de alunos para cadastro.</p>";
+                }
+                ?>
+
+                <button
+                    type="submit"
+                    name="salvar_alunos"
+                    class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold text-lg shadow hover:bg-green-700 transition"
+                >
+                    Salvar Alunos
+                </button>
+
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

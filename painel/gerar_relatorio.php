@@ -15,8 +15,6 @@ $charset = 'UTF-8';
 
 fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-
-
 $sql = "
     SELECT 
         a.id_aluno,
