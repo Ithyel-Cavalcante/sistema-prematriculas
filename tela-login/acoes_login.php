@@ -205,6 +205,24 @@ if(isset($_POST['salvar_alunos'])){
 				continue;
 			}
 
+            $stmt_check_cpf = $mysqli->prepare("SELECT cpf_aluno FROM alunos WHERE cpf_aluno = ?");
+            $stmt_check_cpf->bind_param("s", $cpf);
+            $stmt_check_cpf->execute();
+            $result_check_cpf = $stmt_check_cpf->get_result();
+
+            if ($result_check_cpf->num_rows > 0) {
+                $existing_student = $result_check_cpf->fetch_assoc();
+                $error_message = '';
+                
+                if ($existing_student['cpf_aluno'] === $cpf) {
+                    $error_message = 'Erro: O CPF informado já está cadastrado.';
+                } 
+                $stmt_check_cpf->close();
+                
+                echo "<script>alert('$error_message'); window.history.back();</script>";
+                exit;
+            }
+
 			try {
 				$data_nascimento = new DateTime($data_nascimento_aluno);
 				$intervalo = $data_nascimento->diff($data_corte);
